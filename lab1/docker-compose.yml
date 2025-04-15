@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mynginx
+    container_name: mynginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/var/www/html:ro
+    user: "nginx"

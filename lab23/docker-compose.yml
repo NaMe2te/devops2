@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./devopsapp
+      dockerfile: Dockerfile
+    container_name: myapp
+    ports:
+      - "${APP_EXTERNAL_PORT}:${APP_INNER_PORT}"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=${DB_INNER_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    ports:
+      - ${DB_EXTERNAL_PORT}:${DB_INNER_PORT}
+    environment:
+      - PGDATA=/data
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - ./containers/postgres:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

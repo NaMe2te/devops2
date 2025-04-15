@@ -1,0 +1,41 @@
+include:
+  - project: 'devops4380014/docker-build'
+    ref: 'main'
+    file: 'docker-build.yml'
+
+stages:
+  - build_backend
+  - build_frontend
+
+default:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+
+variables:
+  DOCKER_REGISTRY: registry.gitlab.com
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+build_backend:
+  stage: build_backend
+  rules:
+    - changes:
+        - backend/**
+        - backend/**/*
+        - docker-compose.yml 
+  variables:
+    SERVICE: backend
+    CONTEXT: ./backend
+  extends: .docker-build
+
+build_frontend:
+  stage: build_frontend
+  rules:
+    - changes:
+        - frontend/**
+        - frontend/**/*
+        - docker-compose.yml
+  variables:
+    SERVICE: frontend
+    CONTEXT: ./frontend
+  extends: .docker-build
